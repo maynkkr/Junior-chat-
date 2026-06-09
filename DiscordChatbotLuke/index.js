@@ -1,17 +1,8 @@
-import discord
-from discord.ext import commands, tasks
-import random
-import asyncio
-from datetime import datetime
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.DirectMessages] });
 
-# Bot setup
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-# ==================== ROASTS ====================
-roasts = [
+// ==================== ROASTS ====================
+const roasts = [
     "Bro, you're so boring even your shadow left you",
     "I'd call you a joke, but jokes have a punchline",
     "You're like a human version of a loading screen",
@@ -28,10 +19,10 @@ roasts = [
     "Congratulations, you played yourself",
     "You're proof that evolution can go backwards",
     "I'd roast you but I don't want my mic to catch fire",
-]
+];
 
-# ==================== HUMAN RESPONSES ====================
-human_responses = [
+// ==================== HUMAN RESPONSES ====================
+const humanResponses = [
     "lol okay",
     "nah that's wild",
     "fr fr though",
@@ -48,10 +39,10 @@ human_responses = [
     "ngl that's jokes",
     "pause pause pause",
     "yo i felt that",
-]
+];
 
-# ==================== COMPLIMENTS ====================
-compliments = [
+// ==================== COMPLIMENTS ====================
+const compliments = [
     "Yo, you're actually pretty cool ngl",
     "Not gonna cap, you seem chill fr",
     "Okay okay, I see the vibe you bringing",
@@ -59,22 +50,23 @@ compliments = [
     "I can mess with that energy",
     "Not bad not bad, you're growing on me",
     "Yo you might actually be different",
-]
+];
 
-# ==================== FUNNY SCENARIOS ====================
-funny_scenarios = [
-    "bruh I just spilled my coffee thinking about that 😭",
-    "okay that one caught me off guard fr fr 💀",
-    "nah wait that was kinda funny not gonna lie",
-    "YOOOO that's actually hilarious 😂",
-    "i'm crying that was too good",
-    "wait hold up let me process that 🤔",
-    "that's wild i can't even respond",
-]
+// ==================== MOOD LINES ====================
+const moodLines = {
+    "tired": ["bro i need sleep fr fr 😴", "ngl i'm exhausted", "can i go offline"],
+    "hyped": ["YO THIS IS FIRE 🔥", "LET'S GOOOO", "I'M BUZZING RN"],
+    "confused": ["wait what? 🤔", "i'm lowkey lost rn", "that don't make sense bro"],
+    "savage": ["that's cold bro 🥶", "that hurt ngl", "okay okay i see you"],
+};
 
-# ==================== QUESTION RESPONSES ====================
-def get_question_response():
-    return random.choice([
+// ==================== HELPER FUNCTIONS ====================
+function getRandomElement(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+function getQuestionResponse() {
+    const responses = [
         "idk bro ask google or something",
         "that's a you problem fr",
         "i mean... maybe? idk 🤷",
@@ -82,311 +74,302 @@ def get_question_response():
         "not gonna front i have no idea",
         "bruh why you asking me",
         "i don't get paid enough for this",
-    ])
-
-# ==================== MOOD LINES ====================
-mood_lines = {
-    "tired": ["bro i need sleep fr fr 😴", "ngl i'm exhausted", "can i go offline"],
-    "hyped": ["YO THIS IS FIRE 🔥", "LET'S GOOOO", "I'M BUZZING RN"],
-    "confused": ["wait what? 🤔", "i'm lowkey lost rn", "that don't make sense bro"],
-    "savage": ["that's cold bro 🥶", "that hurt ngl", "okay okay i see you"],
+    ];
+    return getRandomElement(responses);
 }
 
-@bot.event
-async def on_ready():
-    print(f'✅ BOT ONLINE: {bot.user}')
-    print(f'📊 Servers: {len(bot.guilds)}')
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="y'all be weird"))
+// ==================== BOT EVENTS ====================
+client.once('ready', () => {
+    console.log(`✅ BOT ONLINE: ${client.user.tag}`);
+    console.log(`📊 Servers: ${client.guilds.cache.size}`);
+    client.user.setActivity("y'all be weird", { type: 'WATCHING' });
+});
 
-@bot.command(name='roast', help='Get absolutely roasted')
-async def roast(ctx, member: discord.Member = None):
-    """Roast someone"""
-    target = member or ctx.author
-    roast_text = random.choice(roasts)
-    
-    # Add reactions for effect
-    await ctx.message.add_reaction("🔥")
-    await ctx.message.add_reaction("💀")
-    
-    await ctx.send(f"Yo {target.mention}, {roast_text}")
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
 
-@bot.command(name='compliment', help='Get a nice compliment')
-async def compliment(ctx, member: discord.Member = None):
-    """Get complimented"""
-    target = member or ctx.author
-    comp = random.choice(compliments)
-    
-    await ctx.message.add_reaction("💯")
-    await ctx.send(f"Yo {target.mention}, {comp}")
+    const prefix = '!';
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
 
-@bot.command(name='burn', help='Get ultra roasted')
-async def burn(ctx, member: discord.Member = None):
-    """Ultra spicy roast"""
-    target = member or ctx.author
-    spicy_roasts = [
-        f"{target.mention} walked so that comedy could run",
-        f"If I had a nickel for every brain cell {target.mention} had, I'd be broke",
-        f"{target.mention}, you're the human version of a spam email",
-        f"Your presence is like a bad WiFi connection - constantly buffering",
-        f"{target.mention} is the reason God created the mute button",
-        f"{target.mention} tried to be funny once, it didn't work",
-        f"I don't have enough time in the day to roast {target.mention}",
-    ]
-    
-    await ctx.message.add_reaction("🔥")
-    await ctx.send(random.choice(spicy_roasts))
-
-@bot.command(name='flex', help='Bot flexes')
-async def flex(ctx):
-    """Bot flexes on everyone"""
-    flexes = [
-        "I'm the most fire bot in this discord, no cap 🔥",
-        "Ngl I run this server different, y'all just here 🎯",
-        "I'm not trying to brag but... actually yeah I am 💪",
-        "Other bots could never, periodt ✨",
-        "Your bot is mid, i'm the wave fr",
-        "I don't compare, i'm in a league of my own",
-    ]
-    await ctx.send(random.choice(flexes))
-
-@bot.command(name='talk', help='Bot talks')
-async def talk(ctx):
-    """Bot says something"""
-    await ctx.send(random.choice(human_responses))
-
-@bot.command(name='facts', help='Bot spits facts')
-async def facts(ctx):
-    """Spit facts"""
-    facts_list = [
-        "Pineapple belongs on pizza, facts no cap 🍕",
-        "Water is wet, i don't make the rules",
-        "The earth is flat... nah i'm playing 🌍",
-        "Cereal is soup, think about it",
-        "Hot take: you should text them first",
-        "Taxes are mid and that's the tea ☕",
-    ]
-    await ctx.send(f"**FACTS:** {random.choice(facts_list)}")
-
-@bot.command(name='mood', help='Bot says its mood')
-async def mood(ctx, mood_type: str = None):
-    """Bot expresses mood"""
-    if mood_type and mood_type.lower() in mood_lines:
-        msg = random.choice(mood_lines[mood_type.lower()])
-    else:
-        all_moods = [line for lines in mood_lines.values() for line in lines]
-        msg = random.choice(all_moods)
-    
-    await ctx.send(msg)
-
-@bot.command(name='react', help='React to drama')
-async def react(ctx, *, drama: str = None):
-    """React to someone's drama"""
-    if not drama:
-        drama = "something"
-    
-    reactions = [
-        f"YOOOO {drama}?? That's wild fr fr 😱",
-        f"hold up hold up... {drama}??? nah that's crazy",
-        f"i can't even process {drama} rn 💀",
-        f"wait {drama}??? DO WHAT NOW???",
-        f"bestie {drama}?? i'm-- i can't 😭",
-    ]
-    await ctx.send(random.choice(reactions))
-
-@bot.command(name='vibe', help='Check the vibe')
-async def vibe(ctx, member: discord.Member = None):
-    """Check someone's vibe"""
-    target = member or ctx.author
-    vibe_scores = random.randint(1, 100)
-    
-    if vibe_scores >= 80:
-        vibe = "IMMACULATE 🎯"
-    elif vibe_scores >= 60:
-        vibe = "pretty solid ngl 👍"
-    elif vibe_scores >= 40:
-        vibe = "mid fr 😐"
-    else:
-        vibe = "YIKES 💀"
-    
-    await ctx.send(f"{target.mention}'s vibe check: **{vibe_scores}%** - {vibe}")
-
-@bot.command(name='bet', help='Make a deal')
-async def bet(ctx, *, wager: str = None):
-    """Make a bet"""
-    if not wager:
-        await ctx.send("Yo you gotta tell me what we betting on")
-        return
-    
-    win = random.choice([True, False])
-    if win:
-        await ctx.send(f"**BET ACCEPTED** 🎯\n{ctx.author.mention} you actually won?? that's crazy fr")
-    else:
-        await ctx.send(f"**BET DENIED** 💀\n{ctx.author.mention} nah you losing this one chief")
-
-@bot.command(name='ratio', help='Get ratioed')
-async def ratio(ctx, member: discord.Member = None):
-    """Get ratio'd"""
-    target = member or ctx.author
-    ratio_msgs = [
-        f"{target.mention} just got RATIO'D 💀💀💀",
-        f"oof that's an L for {target.mention}",
-        f"{target.mention} walked so bad fr",
-        f"OHHHHH {target.mention} THAT'S AN L",
-    ]
-    await ctx.send(random.choice(ratio_msgs))
-
-@bot.command(name='ask', help='Ask the bot something')
-async def ask(ctx, *, question: str = None):
-    """Ask the bot a question"""
-    if not question:
-        await ctx.send("Ask me something bro")
-        return
-    
-    answers = [
-        "yeah probably",
-        "nah that's cap",
-        "nobody knows fr",
-        "ask someone who cares",
-        "you really asking me?",
-        "the answer is no",
-        "maybe... maybe not",
-        "signs point to yes",
-        "absolutely not",
-        "bet bet",
-        "facts",
-    ]
-    
-    await ctx.send(f"**Question:** {question}\n**Answer:** {random.choice(answers)}")
-
-@bot.command(name='insult', help='Get insulted')
-async def insult(ctx, member: discord.Member = None):
-    """Get insulted - harder than roast"""
-    target = member or ctx.author
-    insults = [
-        f"{target.mention} you're the human equivalent of 404 error",
-        f"if you were a file, you'd be corrupted {target.mention}",
-        f"{target.mention} you're proof that nature made mistakes",
-        f"i have nothing for {target.mention}, you're beyond saving",
-        f"{target.mention} your existence is sus",
-    ]
-    await ctx.send(random.choice(insults))
-
-@bot.command(name='jokes', help='Tell jokes')
-async def jokes(ctx):
-    """Tell jokes"""
-    jokes_list = [
-        "Why did the scarecrow win an award? He was outstanding in his field 😂",
-        "Why don't scientists trust atoms? Because they make up everything! 💀",
-        "What do you call a fake noodle? An impasta! 🍝",
-        "Why did the coffee file a police report? It got mugged! ☕",
-        "Parallel lines have so much in common. It's a shame they'll never meet 📐",
-    ]
-    await ctx.send(random.choice(jokes_list))
-
-@bot.command(name='status', help='Bot status')
-async def status(ctx):
-    """Check bot status"""
-    embed = discord.Embed(title="🤖 BOT STATUS", color=discord.Color.purple())
-    embed.add_field(name="Servers", value=len(bot.guilds), inline=True)
-    embed.add_field(name="Ping", value=f"{round(bot.latency * 1000)}ms", inline=True)
-    embed.add_field(name="Vibe", value="immaculate fr 🎯", inline=True)
-    embed.set_footer(text=f"Best bot | {datetime.now().strftime('%H:%M:%S')}")
-    await ctx.send(embed=embed)
-
-@bot.command(name='help_bot', help='Bot commands')
-async def help_bot(ctx):
-    """Show all commands"""
-    embed = discord.Embed(title="📋 COMMAND LIST", description="yo here's what i can do", color=discord.Color.blurple())
-    
-    commands_list = {
-        "!roast [@user]": "Roast someone",
-        "!burn [@user]": "Ultra roast",
-        "!compliment [@user]": "Give compliment",
-        "!vibe [@user]": "Check vibe score",
-        "!flex": "Bot flexes",
-        "!talk": "Bot talks",
-        "!facts": "Bot spits facts",
-        "!jokes": "Tell jokes",
-        "!ask [question]": "Ask a question",
-        "!react [drama]": "React to drama",
-        "!ratio [@user]": "Get ratio'd",
-        "!insult [@user]": "Get insulted",
-        "!bet [wager]": "Make a bet",
-        "!mood [mood]": "Bot mood",
-        "!status": "Bot status",
-    }
-    
-    for cmd, desc in commands_list.items():
-        embed.add_field(name=cmd, value=desc, inline=False)
-    
-    embed.set_footer(text="best bot in the world fr fr 🔥")
-    await ctx.send(embed=embed)
-
-@bot.event
-async def on_message(message):
-    """Smart message responses"""
-    if message.author == bot.user:
-        return
-    
-    # Respond to mentions
-    if bot.user.mentioned_in(message):
-        mention_responses = [
-            f"Yo {message.author.mention}, what's good? 👀",
-            f"Aye {message.author.mention}, you summoned me? 💀",
-            f"Sup {message.author.mention}, you need something?",
-            f"{message.author.mention} out here calling me, i see you",
-            f"Yo {message.author.mention}? What's the word?",
-            f"ngl you could've texted {message.author.mention} 💀",
-        ]
+    if (!message.content.startsWith(prefix)) {
+        // Auto-responses without command
         
-        await message.channel.send(random.choice(mention_responses))
-    
-    # React to keywords
-    if "bot" in message.content.lower():
-        await message.add_reaction("🤖")
-    
-    if any(word in message.content.lower() for word in ["lol", "haha", "😂", "💀"]):
-        await message.add_reaction("😂")
-    
-    if "no cap" in message.content.lower():
-        await message.add_reaction("✅")
-    
-    if "fr" in message.content.lower() or "facts" in message.content.lower():
-        await message.add_reaction("💯")
-    
-    # Smart replies to questions
-    if message.content.endswith("?") and not message.content.startswith("!"):
-        if random.randint(1, 3) == 1:
-            await message.reply(get_question_response(), mention_author=False)
-    
-    await bot.process_commands(message)
+        // Respond to mentions
+        if (message.mentions.has(client.user)) {
+            const mentionResponses = [
+                `Yo ${message.author}, what's good? 👀`,
+                `Aye ${message.author}, you summoned me? 💀`,
+                `Sup ${message.author}, you need something?`,
+                `${message.author} out here calling me, i see you`,
+                `Yo ${message.author}? What's the word?`,
+                `ngl you could've texted ${message.author} 💀`,
+            ];
+            await message.channel.send(getRandomElement(mentionResponses));
+        }
 
-@bot.event
-async def on_member_join(member):
-    """Welcome new members"""
-    channel = member.guild.system_channel
-    if channel:
-        welcome_msgs = [
-            f"Yo {member.mention} just joined! Let's see if they vibe 👀",
-            f"WELCOME {member.mention}! Don't be weird 💀",
-            f"{member.mention} just pulled up, everyone be nice 🙏",
-            f"fresh blood! welcome {member.mention}",
-        ]
-        await channel.send(random.choice(welcome_msgs))
+        // React to keywords
+        if (message.content.toLowerCase().includes("bot")) {
+            await message.react("🤖");
+        }
+        if (message.content.toLowerCase().match(/lol|haha|😂|💀/)) {
+            await message.react("😂");
+        }
+        if (message.content.toLowerCase().includes("no cap")) {
+            await message.react("✅");
+        }
+        if (message.content.toLowerCase().match(/fr|facts/)) {
+            await message.react("💯");
+        }
 
-@bot.event
-async def on_member_remove(member):
-    """Say goodbye to members"""
-    channel = member.guild.system_channel
-    if channel:
-        goodbye_msgs = [
-            f"oof {member.mention} just dipped 👋",
-            f"{member.mention} left us, can't blame them 💀",
-            f"see you {member.mention}, it was mid anyway",
-        ]
-        await channel.send(random.choice(goodbye_msgs))
+        // Reply to questions
+        if (message.content.endsWith("?")) {
+            if (Math.random() < 0.33) {
+                await message.reply({ content: getQuestionResponse(), allowedMentions: { repliedUser: false } });
+            }
+        }
+        return;
+    }
 
-# ==================== MAIN ====================
-if __name__ == "__main__":
-    TOKEN = "YOUR_DISCORD_BOT_TOKEN_HERE"  # Replace with your token
-    bot.run(TOKEN)
+    // ==================== COMMANDS ====================
+    
+    if (command === 'roast') {
+        const target = message.mentions.first() || message.author;
+        const roastText = getRandomElement(roasts);
+        await message.react("🔥");
+        await message.react("💀");
+        await message.channel.send(`Yo ${target}, ${roastText}`);
+    }
+
+    else if (command === 'burn') {
+        const target = message.mentions.first() || message.author;
+        const spicyRoasts = [
+            `${target} walked so that comedy could run`,
+            `If I had a nickel for every brain cell ${target} had, I'd be broke`,
+            `${target}, you're the human version of a spam email`,
+            `Your presence is like a bad WiFi connection - constantly buffering`,
+            `${target} is the reason God created the mute button`,
+            `${target} tried to be funny once, it didn't work`,
+            `I don't have enough time in the day to roast ${target}`,
+        ];
+        await message.react("🔥");
+        await message.channel.send(getRandomElement(spicyRoasts));
+    }
+
+    else if (command === 'compliment') {
+        const target = message.mentions.first() || message.author;
+        const comp = getRandomElement(compliments);
+        await message.react("💯");
+        await message.channel.send(`Yo ${target}, ${comp}`);
+    }
+
+    else if (command === 'vibe') {
+        const target = message.mentions.first() || message.author;
+        const vibeScore = Math.floor(Math.random() * 100) + 1;
+        let vibeText = "";
+        
+        if (vibeScore >= 80) vibeText = "IMMACULATE 🎯";
+        else if (vibeScore >= 60) vibeText = "pretty solid ngl 👍";
+        else if (vibeScore >= 40) vibeText = "mid fr 😐";
+        else vibeText = "YIKES 💀";
+        
+        await message.channel.send(`${target}'s vibe check: **${vibeScore}%** - ${vibeText}`);
+    }
+
+    else if (command === 'flex') {
+        const flexes = [
+            "I'm the most fire bot in this discord, no cap 🔥",
+            "Ngl I run this server different, y'all just here 🎯",
+            "I'm not trying to brag but... actually yeah I am 💪",
+            "Other bots could never, periodt ✨",
+            "Your bot is mid, i'm the wave fr",
+            "I don't compare, i'm in a league of my own",
+        ];
+        await message.channel.send(getRandomElement(flexes));
+    }
+
+    else if (command === 'talk') {
+        await message.channel.send(getRandomElement(humanResponses));
+    }
+
+    else if (command === 'facts') {
+        const factsList = [
+            "Pineapple belongs on pizza, facts no cap 🍕",
+            "Water is wet, i don't make the rules",
+            "The earth is flat... nah i'm playing 🌍",
+            "Cereal is soup, think about it",
+            "Hot take: you should text them first",
+            "Taxes are mid and that's the tea ☕",
+        ];
+        await message.channel.send(`**FACTS:** ${getRandomElement(factsList)}`);
+    }
+
+    else if (command === 'jokes') {
+        const jokesList = [
+            "Why did the scarecrow win an award? He was outstanding in his field 😂",
+            "Why don't scientists trust atoms? Because they make up everything! 💀",
+            "What do you call a fake noodle? An impasta! 🍝",
+            "Why did the coffee file a police report? It got mugged! ☕",
+            "Parallel lines have so much in common. It's a shame they'll never meet 📐",
+        ];
+        await message.channel.send(getRandomElement(jokesList));
+    }
+
+    else if (command === 'mood') {
+        const moodType = args[0]?.toLowerCase();
+        let msg = "";
+        
+        if (moodType && moodLines[moodType]) {
+            msg = getRandomElement(moodLines[moodType]);
+        } else {
+            const allMoods = Object.values(moodLines).flat();
+            msg = getRandomElement(allMoods);
+        }
+        
+        await message.channel.send(msg);
+    }
+
+    else if (command === 'react') {
+        const drama = args.join(" ") || "something";
+        const reactions = [
+            `YOOOO ${drama}?? That's wild fr fr 😱`,
+            `hold up hold up... ${drama}??? nah that's crazy`,
+            `i can't even process ${drama} rn 💀`,
+            `wait ${drama}??? DO WHAT NOW???`,
+            `bestie ${drama}?? i'm-- i can't 😭`,
+        ];
+        await message.channel.send(getRandomElement(reactions));
+    }
+
+    else if (command === 'bet') {
+        const wager = args.join(" ");
+        if (!wager) {
+            await message.channel.send("Yo you gotta tell me what we betting on");
+            return;
+        }
+        
+        const win = Math.random() > 0.5;
+        if (win) {
+            await message.channel.send(`**BET ACCEPTED** 🎯\n${message.author} you actually won?? that's crazy fr`);
+        } else {
+            await message.channel.send(`**BET DENIED** 💀\n${message.author} nah you losing this one chief`);
+        }
+    }
+
+    else if (command === 'ratio') {
+        const target = message.mentions.first() || message.author;
+        const ratioMsgs = [
+            `${target} just got RATIO'D 💀💀💀`,
+            `oof that's an L for ${target}`,
+            `${target} walked so bad fr`,
+            `OHHHHH ${target} THAT'S AN L`,
+        ];
+        await message.channel.send(getRandomElement(ratioMsgs));
+    }
+
+    else if (command === 'ask') {
+        const question = args.join(" ");
+        if (!question) {
+            await message.channel.send("Ask me something bro");
+            return;
+        }
+        
+        const answers = [
+            "yeah probably",
+            "nah that's cap",
+            "nobody knows fr",
+            "ask someone who cares",
+            "you really asking me?",
+            "the answer is no",
+            "maybe... maybe not",
+            "signs point to yes",
+            "absolutely not",
+            "bet bet",
+            "facts",
+        ];
+        
+        await message.channel.send(`**Question:** ${question}\n**Answer:** ${getRandomElement(answers)}`);
+    }
+
+    else if (command === 'insult') {
+        const target = message.mentions.first() || message.author;
+        const insults = [
+            `${target} you're the human equivalent of 404 error`,
+            `if you were a file, you'd be corrupted ${target}`,
+            `${target} you're proof that nature made mistakes`,
+            `i have nothing for ${target}, you're beyond saving`,
+            `${target} your existence is sus`,
+        ];
+        await message.channel.send(getRandomElement(insults));
+    }
+
+    else if (command === 'status') {
+        const embed = new EmbedBuilder()
+            .setTitle("🤖 BOT STATUS")
+            .setColor("Purple")
+            .addFields(
+                { name: "Servers", value: `${client.guilds.cache.size}`, inline: true },
+                { name: "Ping", value: `${client.ws.ping}ms`, inline: true },
+                { name: "Vibe", value: "immaculate fr 🎯", inline: true }
+            )
+            .setFooter({ text: `Best bot | ${new Date().toLocaleTimeString()}` });
+        
+        await message.channel.send({ embeds: [embed] });
+    }
+
+    else if (command === 'help_bot' || command === 'help') {
+        const embed = new EmbedBuilder()
+            .setTitle("📋 COMMAND LIST")
+            .setDescription("yo here's what i can do")
+            .setColor("Blue")
+            .addFields(
+                { name: "!roast [@user]", value: "Roast someone", inline: false },
+                { name: "!burn [@user]", value: "Ultra roast", inline: false },
+                { name: "!compliment [@user]", value: "Give compliment", inline: false },
+                { name: "!vibe [@user]", value: "Check vibe score", inline: false },
+                { name: "!flex", value: "Bot flexes", inline: false },
+                { name: "!talk", value: "Bot talks", inline: false },
+                { name: "!facts", value: "Bot spits facts", inline: false },
+                { name: "!jokes", value: "Tell jokes", inline: false },
+                { name: "!ask [question]", value: "Ask a question", inline: false },
+                { name: "!react [drama]", value: "React to drama", inline: false },
+                { name: "!ratio [@user]", value: "Get ratio'd", inline: false },
+                { name: "!insult [@user]", value: "Get insulted", inline: false },
+                { name: "!bet [wager]", value: "Make a bet", inline: false },
+                { name: "!mood [mood]", value: "Bot mood", inline: false },
+                { name: "!status", value: "Bot status", inline: false },
+            )
+            .setFooter({ text: "best bot in the world fr fr 🔥" });
+        
+        await message.channel.send({ embeds: [embed] });
+    }
+});
+
+client.on('guildMemberAdd', (member) => {
+    const channel = member.guild.systemChannel;
+    if (channel) {
+        const welcomeMsgs = [
+            `Yo ${member} just joined! Let's see if they vibe 👀`,
+            `WELCOME ${member}! Don't be weird 💀`,
+            `${member} just pulled up, everyone be nice 🙏`,
+            `fresh blood! welcome ${member}`,
+        ];
+        channel.send(getRandomElement(welcomeMsgs));
+    }
+});
+
+client.on('guildMemberRemove', (member) => {
+    const channel = member.guild.systemChannel;
+    if (channel) {
+        const goodbyeMsgs = [
+            `oof ${member.user.tag} just dipped 👋`,
+            `${member.user.tag} left us, can't blame them 💀`,
+            `see you ${member.user.tag}, it was mid anyway`,
+        ];
+        channel.send(getRandomElement(goodbyeMsgs));
+    }
+});
+
+// ==================== LOGIN ====================
+const TOKEN = "YOUR_DISCORD_BOT_TOKEN_HERE"; // Replace with your token
+client.login(TOKEN);
